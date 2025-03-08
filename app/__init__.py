@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
@@ -21,8 +21,21 @@ def create_app(test_config=None):
     # Flask uygulaması oluştur
     app = Flask(__name__, static_folder='static')
     
-    # CORS desteği ekle
-    CORS(app, resources={r"/*": {"origins": "*"}})
+    # CORS desteği ekle - tüm domainlere izin ver
+    CORS(app, 
+         resources={r"/*": {"origins": "*"}}, 
+         supports_credentials=True,
+         allow_headers=["Content-Type", "Authorization", "Access-Control-Allow-Credentials"],
+         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+    
+    # CORS ön uçuş isteklerini ele al
+    @app.after_request
+    def after_request(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response
     
     # Yapılandırma
     if test_config is None:
@@ -62,7 +75,7 @@ def create_app(test_config=None):
     
     @jwt.expired_token_loader
     def expired_token_callback(jwt_header, jwt_payload):
-        # Test amaçlı: Süresi dolmuş token hatalarını yoksay
+        # Test amaçlı: Süresi dolmuş token hatası yoksayıldı
         print(f"Süresi dolmuş token hatası yoksayıldı")
         return None
     
@@ -73,7 +86,13 @@ def create_app(test_config=None):
         SWAGGER_URL,
         API_URL,
         config={
-            'app_name': "Yüz Tanıma ile Yoklama Sistemi API"
+            'app_name': "Yüz Tanıma ile Yoklama Sistemi API",
+            'dom_id': '#swagger-ui',
+            'deepLinking': True,
+            'supportedSubmitMethods': ['get', 'post', 'put', 'delete', 'patch'],
+            'displayRequestDuration': True,
+            'docExpansion': 'none',
+            'validatorUrl': None
         }
     )
     app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
@@ -95,6 +114,12 @@ def create_app(test_config=None):
     
     @app.route('/')
     def index():
-        return {'message': 'Yüz Tanıma ile Yoklama Sistemi API'}
+        return jsonify({'message': 'Yüz Tanıma ile Yoklama Sistemi API'})
+    
+    # OPTIONS isteklerini ele al
+    @app.route('/', defaults={'path': ''}, methods=['OPTIONS'])
+    @app.route('/<path:path>', methods=['OPTIONS'])
+    def options_handler(path):
+        return jsonify({'status': 'ok'})
     
     return app 

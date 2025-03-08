@@ -5,10 +5,10 @@
     "description": "Yüz tanıma teknolojisi kullanarak yoklama almayı ve duygu analizi yapmayı amaçlayan bir sistemin API'si",
     "version": "1.0.0"
   },
-  "host": "localhost:5000",
+  "host": "faceattendancesystembackand-production.up.railway.app",
   "basePath": "/",
   "schemes": [
-    "http"
+    "https"
   ],
   "securityDefinitions": {
     "bearerAuth": {
