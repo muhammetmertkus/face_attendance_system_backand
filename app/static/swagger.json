@@ -1,0 +1,3119 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Yüz Tanıma ile Yoklama Sistemi API",
+    "description": "Yüz tanıma teknolojisi kullanarak yoklama almayı ve duygu analizi yapmayı amaçlayan bir sistemin API'si",
+    "version": "1.0.0"
+  },
+  "host": "localhost:5000",
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "securityDefinitions": {
+    "bearerAuth": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\""
+    }
+  },
+  "tags": [
+    {
+      "name": "🔐 Kimlik Doğrulama",
+      "description": "Kullanıcıların kimliklerini doğrulamak ve yetkilendirmek için kullanılır"
+    },
+    {
+      "name": "👨‍🏫 Öğretmenler",
+      "description": "Öğretmenlerin yönetimi için kullanılır"
+    },
+    {
+      "name": "👨‍🎓 Öğrenciler",
+      "description": "Öğrencilerin yönetimi için kullanılır"
+    },
+    {
+      "name": "📚 Dersler",
+      "description": "Derslerin yönetimi için kullanılır"
+    },
+    {
+      "name": "✅ Yoklama İşlemleri",
+      "description": "Yoklama işlemlerini yönetmek için kullanılır"
+    },
+    {
+      "name": "📊 Yoklama Raporları",
+      "description": "Yoklama ve duygu analizi raporlarını oluşturmak için kullanılır"
+    },
+    {
+      "name": "⚙️ Admin",
+      "description": "Sistem yöneticisi işlemleri için kullanılır"
+    }
+  ],
+  "paths": {
+    "/api/auth/register": {
+      "post": {
+        "tags": [
+          "🔐 Kimlik Doğrulama"
+        ],
+        "summary": "Yeni kullanıcı kaydı",
+        "description": "Sisteme yeni bir kullanıcı kaydeder",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Kullanıcı bilgileri",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "email",
+                "password",
+                "first_name",
+                "last_name",
+                "role"
+              ],
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "ornek@example.com"
+                },
+                "password": {
+                  "type": "string",
+                  "example": "guclu_sifre123"
+                },
+                "first_name": {
+                  "type": "string",
+                  "example": "Ahmet"
+                },
+                "last_name": {
+                  "type": "string",
+                  "example": "Yılmaz"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": [
+                    "admin",
+                    "teacher",
+                    "student"
+                  ],
+                  "example": "teacher"
+                },
+                "department": {
+                  "type": "string",
+                  "example": "Bilgisayar Mühendisliği"
+                },
+                "title": {
+                  "type": "string",
+                  "example": "Dr. Öğr. Üyesi"
+                },
+                "student_number": {
+                  "type": "string",
+                  "example": "20240001"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Kullanıcı başarıyla kaydedildi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Kullanıcı başarıyla kaydedildi."
+                },
+                "user": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Email zaten kayıtlı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu e-posta adresi zaten kullanılıyor."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "🔐 Kimlik Doğrulama"
+        ],
+        "summary": "Kullanıcı girişi",
+        "description": "Kullanıcı kimlik bilgilerini doğrular ve token döndürür",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Giriş bilgileri",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "email",
+                "password"
+              ],
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "admin@example.com"
+                },
+                "password": {
+                  "type": "string",
+                  "example": "admin123"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Başarılı giriş",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "access_token": {
+                  "type": "string",
+                  "example": "eyJhbGciOiJIUzI1NiIsInR5..."
+                },
+                "refresh_token": {
+                  "type": "string",
+                  "example": "eyJhbGciOiJIUzI1NiIsInR5..."
+                },
+                "token_type": {
+                  "type": "string",
+                  "example": "bearer"
+                },
+                "user": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Geçersiz kimlik bilgileri",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Geçersiz e-posta adresi veya şifre."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/refresh": {
+      "post": {
+        "tags": [
+          "🔐 Kimlik Doğrulama"
+        ],
+        "summary": "Access token yenileme",
+        "description": "Refresh token kullanarak yeni bir access token alır",
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token başarıyla yenilendi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "access_token": {
+                  "type": "string",
+                  "example": "eyJhbGciOiJIUzI1NiIsInR5..."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Geçersiz veya süresi dolmuş refresh token",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Geçersiz veya süresi dolmuş token."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "tags": [
+          "🔐 Kimlik Doğrulama"
+        ],
+        "summary": "Mevcut kullanıcı bilgilerini getir",
+        "description": "Token ile kimliği doğrulanmış kullanıcının bilgilerini getirir",
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Kullanıcı bilgileri başarıyla getirildi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "example": 1
+                },
+                "email": {
+                  "type": "string",
+                  "example": "admin@example.com"
+                },
+                "first_name": {
+                  "type": "string",
+                  "example": "Admin"
+                },
+                "last_name": {
+                  "type": "string",
+                  "example": "User"
+                },
+                "role": {
+                  "type": "string",
+                  "example": "admin"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Kullanıcı bulunamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Kullanıcı bulunamadı."
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "🔐 Kimlik Doğrulama"
+        ],
+        "summary": "Mevcut kullanıcı bilgilerini güncelle",
+        "description": "Token ile kimliği doğrulanmış kullanıcının bilgilerini günceller",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Güncellenecek kullanıcı bilgileri",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "password": {
+                  "type": "string",
+                  "example": "yeni_sifre123"
+                },
+                "first_name": {
+                  "type": "string",
+                  "example": "Yeni Ad"
+                },
+                "last_name": {
+                  "type": "string",
+                  "example": "Yeni Soyad"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Kullanıcı bilgileri başarıyla güncellendi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "example": 1
+                },
+                "email": {
+                  "type": "string",
+                  "example": "admin@example.com"
+                },
+                "first_name": {
+                  "type": "string",
+                  "example": "Yeni Ad"
+                },
+                "last_name": {
+                  "type": "string",
+                  "example": "Yeni Soyad"
+                },
+                "role": {
+                  "type": "string",
+                  "example": "admin"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Kullanıcı bulunamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Kullanıcı bulunamadı."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Kullanıcı güncellenemedi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Kullanıcı güncellenemedi."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/reset-password": {
+      "post": {
+        "tags": [
+          "🔐 Kimlik Doğrulama"
+        ],
+        "summary": "Şifre sıfırlama isteği gönder",
+        "description": "Kullanıcının şifresini sıfırlamak için bir istek gönderir",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Şifre sıfırlama isteği",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "email"
+              ],
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "ornek@example.com"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Şifre sıfırlama bağlantısı gönderildi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi."
+                },
+                "token": {
+                  "type": "string",
+                  "example": "eyJhbGciOiJIUzI1NiIsInR5..."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Geçersiz istek",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "E-posta adresi gerekli."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/reset-password/{token}": {
+      "put": {
+        "tags": [
+          "🔐 Kimlik Doğrulama"
+        ],
+        "summary": "Şifreyi sıfırla",
+        "description": "Verilen token ile kullanıcının şifresini sıfırlar",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "description": "Şifre sıfırlama token'ı",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Yeni şifre",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "password"
+              ],
+              "properties": {
+                "password": {
+                  "type": "string",
+                  "example": "yeni_sifre123"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Şifre başarıyla sıfırlandı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Şifreniz başarıyla sıfırlandı."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Geçersiz token",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Geçersiz veya süresi dolmuş token."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Kullanıcı bulunamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Kullanıcı bulunamadı."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/teachers": {
+      "get": {
+        "tags": [
+          "👨‍🏫 Öğretmenler"
+        ],
+        "summary": "Tüm öğretmenleri listele",
+        "description": "Sistemdeki tüm öğretmenleri listeler",
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Başarılı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                },
+                "page": {
+                  "type": "integer",
+                  "example": 1
+                },
+                "per_page": {
+                  "type": "integer",
+                  "example": 10
+                },
+                "total": {
+                  "type": "integer",
+                  "example": 2
+                },
+                "pages": {
+                  "type": "integer",
+                  "example": 1
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Yetkisiz erişim",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Yetkisiz erişim."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Öğretmenler listelenemedi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Öğretmenler listelenemedi."
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "👨‍🏫 Öğretmenler"
+        ],
+        "summary": "Yeni öğretmen oluştur",
+        "description": "Sisteme yeni bir öğretmen ekler",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Öğretmen bilgileri",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "email",
+                "password",
+                "first_name",
+                "last_name",
+                "department"
+              ],
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "ogretmen@example.com"
+                },
+                "password": {
+                  "type": "string",
+                  "example": "sifre123"
+                },
+                "first_name": {
+                  "type": "string",
+                  "example": "Ahmet"
+                },
+                "last_name": {
+                  "type": "string",
+                  "example": "Yılmaz"
+                },
+                "department": {
+                  "type": "string",
+                  "example": "Bilgisayar Mühendisliği"
+                },
+                "title": {
+                  "type": "string",
+                  "example": "Dr. Öğr. Üyesi"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Öğretmen başarıyla oluşturuldu",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Öğretmen başarıyla oluşturuldu."
+                },
+                "teacher": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Email zaten kullanılıyor",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu e-posta adresi zaten kullanılıyor."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Öğretmen oluşturulamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Öğretmen oluşturulamadı."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/teachers/{teacher_id}": {
+      "get": {
+        "tags": [
+          "👨‍🏫 Öğretmenler"
+        ],
+        "summary": "Öğretmen detayını getir",
+        "description": "Belirli bir öğretmenin detaylarını getirir",
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "teacher_id",
+            "in": "path",
+            "description": "Öğretmen ID",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Başarılı",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "404": {
+            "description": "Öğretmen bulunamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Öğretmen bulunamadı."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Sunucu hatası",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Sunucu hatası."
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "👨‍🏫 Öğretmenler"
+        ],
+        "summary": "Öğretmen bilgilerini güncelle",
+        "description": "Belirli bir öğretmenin bilgilerini günceller",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "teacher_id",
+            "in": "path",
+            "description": "Öğretmen ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Güncellenecek öğretmen bilgileri",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "example": "yeni_ogretmen@example.com"
+                },
+                "first_name": {
+                  "type": "string",
+                  "example": "Yeni Ahmet"
+                },
+                "last_name": {
+                  "type": "string",
+                  "example": "Yeni Yılmaz"
+                },
+                "department": {
+                  "type": "string",
+                  "example": "Elektrik Elektronik Mühendisliği"
+                },
+                "title": {
+                  "type": "string",
+                  "example": "Prof. Dr."
+                },
+                "password": {
+                  "type": "string",
+                  "example": "yeni_sifre123"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Öğretmen başarıyla güncellendi",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "404": {
+            "description": "Öğretmen bulunamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Öğretmen bulunamadı."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Öğretmen güncellenemedi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Öğretmen güncellenemedi."
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "👨‍🏫 Öğretmenler"
+        ],
+        "summary": "Öğretmeni sil",
+        "description": "Belirli bir öğretmeni sistemden siler",
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "teacher_id",
+            "in": "path",
+            "description": "Öğretmen ID",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Öğretmen başarıyla silindi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Öğretmen başarıyla silindi."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Öğretmenin aktif dersleri var",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Öğretmenin aktif dersleri var. Önce dersleri silin veya başka bir öğretmene atayın."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Bu işlem için admin yetkisi gerekli",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu işlem için admin yetkisi gerekli."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Öğretmen bulunamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Öğretmen bulunamadı."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Öğretmen silinemedi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Öğretmen silinemedi."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/students/create-with-face": {
+      "post": {
+        "tags": [
+          "👨‍🎓 Öğrenciler"
+        ],
+        "summary": "Yeni öğrenci oluştur ve yüz fotoğrafı yükle",
+        "description": "Sisteme yeni bir öğrenci ekler ve yüz fotoğrafını yükler",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "file",
+            "in": "formData",
+            "description": "Öğrenci yüz fotoğrafı (JPEG/PNG)",
+            "required": true,
+            "type": "file"
+          },
+          {
+            "name": "email",
+            "in": "formData",
+            "description": "E-posta adresi",
+            "required": true,
+            "type": "string",
+            "example": "ogrenci@example.com"
+          },
+          {
+            "name": "password",
+            "in": "formData",
+            "description": "Şifre",
+            "required": true,
+            "type": "string",
+            "example": "sifre123"
+          },
+          {
+            "name": "first_name",
+            "in": "formData",
+            "description": "Ad",
+            "required": true,
+            "type": "string",
+            "example": "Ali"
+          },
+          {
+            "name": "last_name",
+            "in": "formData",
+            "description": "Soyad",
+            "required": true,
+            "type": "string",
+            "example": "Öğrenci"
+          },
+          {
+            "name": "student_number",
+            "in": "formData",
+            "description": "Öğrenci numarası",
+            "required": true,
+            "type": "string",
+            "example": "20240001"
+          },
+          {
+            "name": "department",
+            "in": "formData",
+            "description": "Bölüm",
+            "required": true,
+            "type": "string",
+            "example": "Bilgisayar Mühendisliği"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Öğrenci başarıyla oluşturuldu ve fotoğraf yüklendi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "example": 123
+                },
+                "student_number": {
+                  "type": "string",
+                  "example": "20240001"
+                },
+                "user": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "example": 456
+                    },
+                    "email": {
+                      "type": "string",
+                      "example": "ogrenci@example.com"
+                    },
+                    "first_name": {
+                      "type": "string",
+                      "example": "Ali"
+                    },
+                    "last_name": {
+                      "type": "string",
+                      "example": "Öğrenci"
+                    },
+                    "role": {
+                      "type": "string",
+                      "example": "student"
+                    }
+                  }
+                },
+                "face_photo_url": {
+                  "type": "string",
+                  "example": "/static/faces/123.jpg"
+                },
+                "created_at": {
+                  "type": "string",
+                  "example": "2024-04-30T10:00:00Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Geçersiz istek",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu e-posta adresi zaten kullanılıyor."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Öğrenci oluşturulamadı veya fotoğraf yüklenemedi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Öğrenci oluşturulamadı veya fotoğraf yüklenemedi."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/attendance/course/{course_id}": {
+      "post": {
+        "tags": [
+          "✅ Yoklama İşlemleri"
+        ],
+        "summary": "Yoklama Al",
+        "description": "Sınıf fotoğrafı ile yoklama alır ve yüz tanıma yapar",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "description": "Ders ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "photo",
+            "in": "formData",
+            "description": "Sınıf fotoğrafı",
+            "required": true,
+            "type": "file"
+          },
+          {
+            "name": "lesson_number",
+            "in": "formData",
+            "description": "Ders saati numarası",
+            "required": false,
+            "type": "integer",
+            "default": 1
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Yoklama başarıyla alındı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Yoklama başarıyla alındı."
+                },
+                "attendance": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Geçersiz istek",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu ders için bugün zaten yoklama alınmış."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Yetki hatası",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu işlem için yetkiniz yok."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ders bulunamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Ders bulunamadı."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Yoklama alınamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Yoklama alınamadı."
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "✅ Yoklama İşlemleri"
+        ],
+        "summary": "Dersin yoklamalarını getir",
+        "description": "Belirli bir dersin yoklama kayıtlarını getirir",
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "description": "Ders ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "start_date",
+            "in": "query",
+            "description": "Başlangıç tarihi (YYYY-MM-DD)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "description": "Bitiş tarihi (YYYY-MM-DD)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Sayfa numarası",
+            "required": false,
+            "type": "integer",
+            "default": 1
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "Sayfa başına kayıt sayısı",
+            "required": false,
+            "type": "integer",
+            "default": 10
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Başarılı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                },
+                "page": {
+                  "type": "integer",
+                  "example": 1
+                },
+                "per_page": {
+                  "type": "integer",
+                  "example": 10
+                },
+                "total": {
+                  "type": "integer",
+                  "example": 5
+                },
+                "pages": {
+                  "type": "integer",
+                  "example": 1
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Yetki hatası",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu dersin yoklamalarını görüntüleme yetkiniz yok."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ders bulunamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Ders bulunamadı."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Yoklamalar getirilemedi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Yoklamalar getirilemedi."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/attendance/{attendance_id}": {
+      "put": {
+        "tags": [
+          "✅ Yoklama İşlemleri"
+        ],
+        "summary": "Yoklama bilgilerini güncelle",
+        "description": "Belirli bir yoklamanın bilgilerini günceller",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "attendance_id",
+            "in": "path",
+            "description": "Yoklama ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Güncellenecek yoklama bilgileri",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "date": {
+                  "type": "string",
+                  "example": "2024-05-01"
+                },
+                "lesson_number": {
+                  "type": "integer",
+                  "example": 1
+                },
+                "records": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "student_id": {
+                        "type": "integer",
+                        "example": 1
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "PRESENT",
+                          "ABSENT",
+                          "LATE",
+                          "EXCUSED"
+                        ],
+                        "example": "PRESENT"
+                      },
+                      "note": {
+                        "type": "string",
+                        "example": "Manuel olarak güncellendi"
+                      },
+                      "emotion": {
+                        "type": "string",
+                        "example": "happy"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Yoklama başarıyla güncellendi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Yoklama başarıyla güncellendi."
+                },
+                "attendance": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Geçersiz istek",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Geçersiz tarih formatı. Doğru format: YYYY-MM-DD"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Yetki hatası",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu yoklamayı güncelleme yetkiniz yok."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Yoklama bulunamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Yoklama bulunamadı."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Yoklama güncellenemedi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Yoklama güncellenemedi."
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "✅ Yoklama İşlemleri"
+        ],
+        "summary": "Yoklamayı sil",
+        "description": "Belirli bir yoklamayı siler",
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "attendance_id",
+            "in": "path",
+            "description": "Yoklama ID",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Yoklama başarıyla silindi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Yoklama başarıyla silindi."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Yetki hatası",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu yoklamayı silme yetkiniz yok."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Yoklama bulunamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Yoklama bulunamadı."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Yoklama silinemedi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Yoklama silinemedi."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/reset-database": {
+      "post": {
+        "tags": [
+          "⚙️ Admin"
+        ],
+        "summary": "Veritabanını sıfırla",
+        "description": "Veritabanını sıfırlar ve tüm verileri temizler",
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Veritabanı başarıyla sıfırlandı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Veritabanı başarıyla sıfırlandı."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Yetkilendirme hatası",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Yetkilendirme hatası."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Bu işlem için admin yetkisi gerekli",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu işlem için admin yetkisi gerekli."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Veritabanı sıfırlanamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Veritabanı sıfırlanamadı."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/seed-database": {
+      "post": {
+        "tags": [
+          "⚙️ Admin"
+        ],
+        "summary": "Veritabanına örnek veriler ekle",
+        "description": "Veritabanına test için örnek veriler ekler",
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Örnek veriler başarıyla eklendi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Örnek veriler başarıyla eklendi."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Yetkilendirme hatası",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Yetkilendirme hatası."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Bu işlem için admin yetkisi gerekli",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu işlem için admin yetkisi gerekli."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Örnek veriler eklenemedi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Örnek veriler eklenemedi."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/backup-database": {
+      "post": {
+        "tags": [
+          "⚙️ Admin"
+        ],
+        "summary": "Veritabanını yedekle",
+        "description": "Veritabanını ve yüz fotoğraflarını yedekler",
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Veritabanı başarıyla yedeklendi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Veritabanı başarıyla yedeklendi."
+                },
+                "backup_file": {
+                  "type": "string",
+                  "example": "backup_20240501_120000.db"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Geçersiz istek",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu işlem sadece SQLite veritabanları için desteklenmektedir."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Yetkilendirme hatası",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Yetkilendirme hatası."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Bu işlem için admin yetkisi gerekli",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu işlem için admin yetkisi gerekli."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Veritabanı yedeklenemedi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Veritabanı yedeklenemedi."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/restore-database": {
+      "post": {
+        "tags": [
+          "⚙️ Admin"
+        ],
+        "summary": "Veritabanını geri yükle",
+        "description": "Yedekten veritabanını ve yüz fotoğraflarını geri yükler",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Geri yüklenecek yedek dosyası",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "backup_file"
+              ],
+              "properties": {
+                "backup_file": {
+                  "type": "string",
+                  "example": "backup_20240501_120000.db"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Veritabanı başarıyla geri yüklendi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Veritabanı başarıyla geri yüklendi."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Geçersiz istek",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Yedek dosya adı gerekli."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Yetkilendirme hatası",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Yetkilendirme hatası."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Bu işlem için admin yetkisi gerekli",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu işlem için admin yetkisi gerekli."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Yedek dosyası bulunamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Belirtilen yedek dosyası bulunamadı."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Veritabanı geri yüklenemedi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Veritabanı geri yüklenemedi."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/backups": {
+      "get": {
+        "tags": [
+          "⚙️ Admin"
+        ],
+        "summary": "Mevcut yedekleri listele",
+        "description": "Sistemdeki tüm veritabanı yedeklerini listeler",
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Başarılı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "backups": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "filename": {
+                        "type": "string",
+                        "example": "backup_20240501_120000.db"
+                      },
+                      "size": {
+                        "type": "integer",
+                        "example": 1024000
+                      },
+                      "created_at": {
+                        "type": "string",
+                        "example": "2024-05-01 12:00:00"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Yetkilendirme hatası",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Yetkilendirme hatası."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Bu işlem için admin yetkisi gerekli",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu işlem için admin yetkisi gerekli."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Yedekler listelenemedi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Yedekler listelenemedi."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/download-backup/{filename}": {
+      "get": {
+        "tags": [
+          "⚙️ Admin"
+        ],
+        "summary": "Yedek dosyasını indir",
+        "description": "Belirtilen yedek dosyasını indirir",
+        "produces": [
+          "application/octet-stream"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "filename",
+            "in": "path",
+            "description": "Yedek dosyasının adı",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Yedek dosyası",
+            "schema": {
+              "type": "file"
+            }
+          },
+          "401": {
+            "description": "Yetkilendirme hatası",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Yetkilendirme hatası."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Bu işlem için admin yetkisi gerekli",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu işlem için admin yetkisi gerekli."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Yedek dosyası bulunamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Belirtilen yedek dosyası bulunamadı."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Yedek dosyası indirilemedi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Yedek dosyası indirilemedi."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reports/attendance/course/{course_id}": {
+      "get": {
+        "tags": [
+          "📊 Yoklama Raporları"
+        ],
+        "summary": "Ders bazlı devamsızlık raporu",
+        "description": "Bir dersteki genel devamsızlık oranını ve öğrenci bazında istatistikleri gösterir",
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "description": "Ders ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "start_date",
+            "in": "query",
+            "description": "Başlangıç tarihi (YYYY-MM-DD)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "end_date",
+            "in": "query",
+            "description": "Bitiş tarihi (YYYY-MM-DD)",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Başarılı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "course": {
+                  "type": "object"
+                },
+                "date_range": {
+                  "type": "object",
+                  "properties": {
+                    "start_date": {
+                      "type": "string",
+                      "example": "2024-04-01"
+                    },
+                    "end_date": {
+                      "type": "string",
+                      "example": "2024-04-30"
+                    }
+                  }
+                },
+                "statistics": {
+                  "type": "object",
+                  "properties": {
+                    "total_attendances": {
+                      "type": "integer",
+                      "example": 10
+                    },
+                    "total_students": {
+                      "type": "integer",
+                      "example": 20
+                    },
+                    "total_records": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "present_count": {
+                      "type": "integer",
+                      "example": 150
+                    },
+                    "absent_count": {
+                      "type": "integer",
+                      "example": 30
+                    },
+                    "late_count": {
+                      "type": "integer",
+                      "example": 15
+                    },
+                    "excused_count": {
+                      "type": "integer",
+                      "example": 5
+                    },
+                    "attendance_rate": {
+                      "type": "number",
+                      "example": 82.5
+                    }
+                  }
+                },
+                "student_statistics": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                },
+                "attendances": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Yetki hatası",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu dersin raporlarını görüntüleme yetkiniz yok."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ders bulunamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Ders bulunamadı."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Rapor oluşturulurken bir hata oluştu",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Rapor oluşturulurken bir hata oluştu."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/courses": {
+      "get": {
+        "tags": [
+          "📚 Dersler"
+        ],
+        "summary": "Tüm dersleri listele",
+        "description": "Sistemdeki tüm dersleri listeler",
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Sayfa numarası",
+            "required": false,
+            "type": "integer",
+            "default": 1
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "Sayfa başına kayıt sayısı",
+            "required": false,
+            "type": "integer",
+            "default": 10
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Başarılı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                },
+                "page": {
+                  "type": "integer",
+                  "example": 1
+                },
+                "per_page": {
+                  "type": "integer",
+                  "example": 10
+                },
+                "total": {
+                  "type": "integer",
+                  "example": 5
+                },
+                "pages": {
+                  "type": "integer",
+                  "example": 1
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Bu işlem için yetkiniz yok",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu işlem için yetkiniz yok."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Dersler listelenemedi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Dersler listelenemedi."
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "📚 Dersler"
+        ],
+        "summary": "Yeni ders oluştur",
+        "description": "Sisteme yeni bir ders ekler",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Ders bilgileri",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "code",
+                "name",
+                "semester",
+                "teacher_id",
+                "lesson_times"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "example": "CSE101"
+                },
+                "name": {
+                  "type": "string",
+                  "example": "Bilgisayar Mühendisliğine Giriş"
+                },
+                "semester": {
+                  "type": "string",
+                  "example": "2023-BAHAR"
+                },
+                "teacher_id": {
+                  "type": "integer",
+                  "example": 1
+                },
+                "lesson_times": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "day": {
+                        "type": "string",
+                        "example": "MONDAY"
+                      },
+                      "start_time": {
+                        "type": "string",
+                        "example": "09:00"
+                      },
+                      "end_time": {
+                        "type": "string",
+                        "example": "09:50"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Ders başarıyla oluşturuldu",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "400": {
+            "description": "Geçersiz istek",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "En az bir ders saati gerekli."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Bu işlem için öğretmen yetkisi gerekli",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu işlem için öğretmen yetkisi gerekli."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Ders oluşturulamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Ders oluşturulamadı."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/courses/{course_id}": {
+      "get": {
+        "tags": [
+          "📚 Dersler"
+        ],
+        "summary": "Belirli bir dersi getir",
+        "description": "Belirli bir dersin detaylarını getirir",
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "description": "Ders ID",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Başarılı",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "403": {
+            "description": "Bu dersi görüntüleme yetkiniz yok",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu dersi görüntüleme yetkiniz yok."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ders bulunamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Ders bulunamadı."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Ders getirilemedi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Ders getirilemedi."
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "📚 Dersler"
+        ],
+        "summary": "Ders bilgilerini güncelle",
+        "description": "Belirli bir dersin bilgilerini günceller",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "description": "Ders ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Güncellenecek ders bilgileri",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "example": "CSE101"
+                },
+                "name": {
+                  "type": "string",
+                  "example": "Bilgisayar Mühendisliğine Giriş"
+                },
+                "semester": {
+                  "type": "string",
+                  "example": "2023-BAHAR"
+                },
+                "teacher_id": {
+                  "type": "integer",
+                  "example": 1
+                },
+                "lesson_times": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "day": {
+                        "type": "string",
+                        "example": "MONDAY"
+                      },
+                      "start_time": {
+                        "type": "string",
+                        "example": "09:00"
+                      },
+                      "end_time": {
+                        "type": "string",
+                        "example": "09:50"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ders başarıyla güncellendi",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "400": {
+            "description": "Geçersiz istek",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Ders saati için gün, başlangıç ve bitiş saati gerekli."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Bu işlem için yetkiniz yok",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu işlem için yetkiniz yok."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ders bulunamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Ders bulunamadı."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Ders güncellenemedi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Ders güncellenemedi."
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "📚 Dersler"
+        ],
+        "summary": "Dersi sil",
+        "description": "Belirli bir dersi siler",
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "description": "Ders ID",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Ders başarıyla silindi"
+          },
+          "403": {
+            "description": "Bu işlem için yetkiniz yok",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu işlem için yetkiniz yok."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ders bulunamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Ders bulunamadı."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Ders silinemedi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Ders silinemedi."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/courses/{course_id}/students": {
+      "get": {
+        "tags": [
+          "📚 Dersler"
+        ],
+        "summary": "Dersin öğrencilerini getir",
+        "description": "Belirli bir dersin öğrencilerini listeler",
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "description": "Ders ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Sayfa numarası",
+            "required": false,
+            "type": "integer",
+            "default": 1
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "description": "Sayfa başına kayıt sayısı",
+            "required": false,
+            "type": "integer",
+            "default": 10
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Başarılı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                },
+                "page": {
+                  "type": "integer",
+                  "example": 1
+                },
+                "per_page": {
+                  "type": "integer",
+                  "example": 10
+                },
+                "total": {
+                  "type": "integer",
+                  "example": 5
+                },
+                "pages": {
+                  "type": "integer",
+                  "example": 1
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Bu dersin öğrencilerini görüntüleme yetkiniz yok",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu dersin öğrencilerini görüntüleme yetkiniz yok."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ders bulunamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Ders bulunamadı."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Dersin öğrencileri getirilemedi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Dersin öğrencileri getirilemedi."
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "📚 Dersler"
+        ],
+        "summary": "Derse öğrenci ekle",
+        "description": "Belirli bir derse öğrenci ekler",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "description": "Ders ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Eklenecek öğrenci ID'leri",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "student_ids"
+              ],
+              "properties": {
+                "student_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  },
+                  "example": [1, 2, 3]
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Öğrenciler başarıyla eklendi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "3 öğrenci başarıyla eklendi."
+                },
+                "students": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Geçersiz istek",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Öğrenci ID'leri gerekli."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Bu işlem için yetkiniz yok",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu işlem için yetkiniz yok."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ders bulunamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Ders bulunamadı."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Öğrenciler eklenemedi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Öğrenciler eklenemedi."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/courses/{course_id}/students/{student_id}": {
+      "delete": {
+        "tags": [
+          "📚 Dersler"
+        ],
+        "summary": "Dersten öğrenci çıkar",
+        "description": "Belirli bir dersten öğrenciyi çıkarır",
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "description": "Ders ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "student_id",
+            "in": "path",
+            "description": "Öğrenci ID",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Öğrenci başarıyla çıkarıldı"
+          },
+          "403": {
+            "description": "Bu işlem için yetkiniz yok",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu işlem için yetkiniz yok."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ders, öğrenci bulunamadı veya öğrenci bu derste kayıtlı değil",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Öğrenci bu derse kayıtlı değil."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Öğrenci çıkarılamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Öğrenci çıkarılamadı."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/courses/{course_id}/attendance": {
+      "post": {
+        "tags": [
+          "✅ Yoklama İşlemleri"
+        ],
+        "summary": "Yoklama Al (Alternatif endpoint)",
+        "description": "Sınıf fotoğrafı ile yoklama alır ve yüz tanıma yapar",
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "course_id",
+            "in": "path",
+            "description": "Ders ID",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "photo",
+            "in": "formData",
+            "description": "Sınıf fotoğrafı",
+            "required": true,
+            "type": "file"
+          },
+          {
+            "name": "lesson_number",
+            "in": "formData",
+            "description": "Ders saati numarası",
+            "required": false,
+            "type": "integer",
+            "default": 1
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Yoklama başarıyla alındı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Yoklama başarıyla alındı."
+                },
+                "attendance": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Geçersiz istek",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu ders için bugün zaten yoklama alınmış."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Yetki hatası",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Bu işlem için yetkiniz yok."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ders bulunamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Ders bulunamadı."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Yoklama alınamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Yoklama alınamadı."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+} 
