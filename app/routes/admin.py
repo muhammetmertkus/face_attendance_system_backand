@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, current_app, send_file
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db
 from app.utils.helpers import admin_required
 import os
@@ -7,6 +7,8 @@ import shutil
 import sqlite3
 import datetime
 import tempfile
+from alembic.config import Config
+from alembic import command
 
 bp = Blueprint('admin', __name__, url_prefix='/api/admin')
 
@@ -380,4 +382,28 @@ def download_backup(filename):
         
         return send_file(backup_path, as_attachment=True, download_name=filename)
     except Exception as e:
-        return jsonify(error=str(e)), 500 
+        return jsonify(error=str(e)), 500
+
+def upgrade_database():
+    """Veritabanını en son sürüme yükseltir."""
+    try:
+        alembic_cfg = Config("alembic.ini")
+        command.upgrade(alembic_cfg, "head")
+        return True, None
+    except Exception as e:
+        return False, str(e)
+
+@bp.route('/upgrade-db', methods=['POST'])
+@jwt_required()
+def upgrade_db():
+    """Veritabanını yükseltme endpoint'i."""
+    current_user = get_jwt_identity()
+    if current_user['role'] != 'admin':
+        return jsonify({'error': 'Bu işlem için admin yetkisi gerekli.'}), 403
+
+    success, error = upgrade_database()
+
+    if success:
+        return jsonify({'message': 'Veritabanı başarıyla güncellendi.'}), 200
+    else:
+        return jsonify({'error': f'Veritabanı güncellenemedi: {error}'}), 500 
