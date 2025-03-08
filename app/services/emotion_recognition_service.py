@@ -2,7 +2,6 @@ import json
 import numpy as np
 import face_recognition
 from PIL import Image
-import cv2
 from io import BytesIO
 
 class EmotionRecognitionService:
