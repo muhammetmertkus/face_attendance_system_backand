@@ -3178,6 +3178,41 @@
           }
         }
       }
+    },
+    "/api/admin/public-upgrade-db": {
+      "post": {
+        "tags": [
+          "🔄 Veritabanı"
+        ],
+        "summary": "Veritabanını Yükselt (Genel Erişim)",
+        "description": "Veritabanı şemasını en son sürüme yükseltir. Bu endpoint yetkilendirme gerektirmez.",
+        "responses": {
+          "200": {
+            "description": "Veritabanı başarıyla güncellendi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Veritabanı başarıyla güncellendi."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Veritabanı güncellenemedi",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Veritabanı güncellenemedi."
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {
