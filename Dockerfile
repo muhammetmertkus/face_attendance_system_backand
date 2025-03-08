@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     zlib1g-dev \
     pkg-config \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Uygulama dosyalarını kopyala

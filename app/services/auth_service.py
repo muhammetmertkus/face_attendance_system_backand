@@ -9,7 +9,7 @@ class AuthService:
     """Kimlik doğrulama servisi"""
     
     @staticmethod
-    def register_user(email, password, first_name, last_name, role, department=None, branch=None, title=None, student_number=None):
+    def register_user(email, password, first_name, last_name, role, department=None, branch=None, title=None, student_number=None, face_encoding=None, face_photo_url=None):
         """
         Yeni kullanıcı kaydı
         
@@ -23,6 +23,8 @@ class AuthService:
             branch (str): Şube
             title (str): Ünvan
             student_number (str): Öğrenci numarası
+            face_encoding (str): Yüz kodlaması
+            face_photo_url (str): Yüz fotoğrafı URL'si
             
         Returns:
             tuple: (başarı durumu, kullanıcı veya hata mesajı)
@@ -57,8 +59,9 @@ class AuthService:
                 user.teacher = teacher
             
             elif role == 'student':
-                face_encoding = kwargs.get('face_encoding')
-                face_photo_url = kwargs.get('face_photo_url')
+                # kwargs değişkeni yerine doğrudan parametreleri kullan
+                # face_encoding = kwargs.get('face_encoding')
+                # face_photo_url = kwargs.get('face_photo_url')
                 
                 # Öğrenci numarası kontrolü
                 existing_student = Student.query.filter_by(student_number=student_number).first()
@@ -70,8 +73,8 @@ class AuthService:
                     user_id=user.id,
                     student_number=student_number,
                     department=department,
-                    face_encoding=face_encoding,
-                    face_photo_url=face_photo_url
+                    face_encoding=face_encoding if 'face_encoding' in locals() else None,
+                    face_photo_url=face_photo_url if 'face_photo_url' in locals() else None
                 )
                 db.session.add(student)
             
