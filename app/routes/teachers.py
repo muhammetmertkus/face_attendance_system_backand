@@ -21,9 +21,19 @@ def get_teachers():
         query = Teacher.query.order_by(Teacher.id)
         
         # Sayfalama
-        result = paginate_query(query, page, per_page)
+        pagination_result = paginate_query(query, page, per_page)
         
-        return jsonify(result), 200
+        # API yanıtını formatla
+        teachers = []
+        for teacher in pagination_result['items']:
+            user = User.query.get(teacher.user_id)
+            teachers.append({
+                "id": str(teacher.id),
+                "name": f"{user.first_name} {user.last_name}",
+                "branch": teacher.branch or teacher.department
+            })
+        
+        return jsonify(teachers), 200
     except Exception as e:
         return jsonify(error=str(e)), 500
 
@@ -48,11 +58,19 @@ def create_teacher():
         last_name=data['last_name'],
         role='teacher',
         department=data['department'],
+        branch=data.get('branch'),
         title=data.get('title')
     )
     
     if success:
-        return jsonify(message="Öğretmen başarıyla oluşturuldu.", teacher=result.teacher.to_dict()), 201
+        teacher = result.teacher
+        # API yanıtını formatla
+        response = {
+            "id": str(teacher.id),
+            "name": f"{result.first_name} {result.last_name}",
+            "branch": teacher.branch or teacher.department
+        }
+        return jsonify(response), 201
     else:
         return jsonify(error=result), 400
 
@@ -66,7 +84,16 @@ def get_teacher(teacher_id):
         if not teacher:
             return jsonify(error="Öğretmen bulunamadı."), 404
         
-        return jsonify(teacher.to_dict()), 200
+        user = User.query.get(teacher.user_id)
+        
+        # API yanıtını formatla
+        response = {
+            "id": str(teacher.id),
+            "name": f"{user.first_name} {user.last_name}",
+            "branch": teacher.branch or teacher.department
+        }
+        
+        return jsonify(response), 200
     except Exception as e:
         return jsonify(error=str(e)), 500
 
@@ -103,6 +130,8 @@ def update_teacher(teacher_id):
         if 'password' in data:
             user_data['password'] = data['password']
         
+        teacher_user = User.query.get(teacher.user_id)
+        
         if user_data:
             success, result = AuthService.update_user(
                 user_id=teacher.user_id,
@@ -115,12 +144,21 @@ def update_teacher(teacher_id):
         # Öğretmen bilgilerini güncelle
         if 'department' in data:
             teacher.department = data['department']
+        if 'branch' in data:
+            teacher.branch = data['branch']
         if 'title' in data:
             teacher.title = data['title']
         
         db.session.commit()
         
-        return jsonify(teacher.to_dict()), 200
+        # API yanıtını formatla
+        response = {
+            "id": str(teacher.id),
+            "name": f"{teacher_user.first_name} {teacher_user.last_name}",
+            "branch": teacher.branch or teacher.department
+        }
+        
+        return jsonify(response), 200
     except Exception as e:
         db.session.rollback()
         return jsonify(error=str(e)), 500
@@ -151,7 +189,8 @@ def delete_teacher(teacher_id):
         
         db.session.commit()
         
-        return jsonify(message="Öğretmen başarıyla silindi."), 200
+        # 204 No Content yanıtı
+        return "", 204
     except Exception as e:
         db.session.rollback()
         return jsonify(error=str(e)), 500

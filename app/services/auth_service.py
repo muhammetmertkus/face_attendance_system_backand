@@ -9,7 +9,7 @@ class AuthService:
     """Kimlik doğrulama servisi"""
     
     @staticmethod
-    def register_user(email, password, first_name, last_name, role, **kwargs):
+    def register_user(email, password, first_name, last_name, role, department=None, branch=None, title=None, student_number=None):
         """
         Yeni kullanıcı kaydı
         
@@ -19,7 +19,10 @@ class AuthService:
             first_name (str): Ad
             last_name (str): Soyad
             role (str): Rol ('admin', 'teacher', 'student')
-            **kwargs: Rol için ek bilgiler
+            department (str): Bölüm
+            branch (str): Şube
+            title (str): Ünvan
+            student_number (str): Öğrenci numarası
             
         Returns:
             tuple: (başarı durumu, kullanıcı veya hata mesajı)
@@ -31,21 +34,29 @@ class AuthService:
                 return False, "Bu e-posta adresi zaten kullanılıyor."
             
             # Kullanıcı oluştur
-            user = User(email=email, password=password, first_name=first_name, last_name=last_name, role=role)
-            db.session.add(user)
-            db.session.flush()  # ID'yi almak için flush
+            user = User(
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name,
+                role=role
+            )
             
-            # Rol için ek işlemler
-            if role == 'teacher':
-                department = kwargs.get('department', '')
-                title = kwargs.get('title', '')
-                
-                teacher = Teacher(user_id=user.id, department=department, title=title)
+            db.session.add(user)
+            db.session.flush()  # ID ataması için flush
+            
+            # Rol bazlı işlemler
+            if role == 'teacher' and department:
+                teacher = Teacher(
+                    user_id=user.id,
+                    department=department,
+                    branch=branch,
+                    title=title
+                )
                 db.session.add(teacher)
+                user.teacher = teacher
             
             elif role == 'student':
-                student_number = kwargs.get('student_number', '')
-                department = kwargs.get('department', '')
                 face_encoding = kwargs.get('face_encoding')
                 face_photo_url = kwargs.get('face_photo_url')
                 
