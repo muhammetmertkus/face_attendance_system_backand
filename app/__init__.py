@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask_swagger_ui import get_swaggerui_blueprint
+from flask_cors import CORS
 from dotenv import load_dotenv
 
 # Ortam değişkenlerini yükle
@@ -19,6 +20,9 @@ jwt = JWTManager()
 def create_app(test_config=None):
     # Flask uygulaması oluştur
     app = Flask(__name__, static_folder='static')
+    
+    # CORS desteği ekle
+    CORS(app, resources={r"/*": {"origins": "*"}})
     
     # Yapılandırma
     if test_config is None:
