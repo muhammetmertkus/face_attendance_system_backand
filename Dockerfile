@@ -11,16 +11,19 @@ RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     zlib1g-dev \
     pkg-config \
+    libopenjp2-7-dev \
+    libtiff5-dev \
+    libwebp-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Uygulama dosyalarını kopyala
 COPY . .
 
-# Python bağımlılıklarını yükle
+# Önceden derlenmiş paketleri kullan
 RUN pip install --upgrade pip && \
     pip install wheel && \
-    pip install --no-cache-dir --only-binary=:all: Pillow==9.5.0 || pip install --no-cache-dir Pillow==9.5.0 && \
-    pip install --no-cache-dir --only-binary=:all: dlib==19.24.0 || pip install --no-cache-dir dlib==19.24.0 && \
+    pip install --no-cache-dir Pillow==9.5.0 && \
+    pip install --no-cache-dir dlib==19.24.0 && \
     pip install --no-cache-dir face-recognition==1.3.0 && \
     pip install --no-cache-dir -r requirements.txt
 
