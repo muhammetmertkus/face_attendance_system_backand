@@ -1,0 +1,16 @@
+[phases.setup]
+nixPkgs = ["zlib", "zlib.dev", "cmake", "gcc", "pkg-config", "libpng", "libjpeg", "freetype", "lcms2", "openjpeg", "libimagequant", "libwebp", "python312", "python312Packages.pip"]
+
+[phases.install]
+cmds = [
+  "python -m venv --copies /opt/venv",
+  ". /opt/venv/bin/activate",
+  "pip install --upgrade pip",
+  "pip install wheel",
+  "pip install --only-binary=:all: Pillow==9.5.0",
+  "pip install --only-binary=:all: dlib==19.24.0 || pip install dlib==19.24.0 --no-cache-dir",
+  "pip install -r requirements.txt"
+]
+
+[start]
+cmd = "gunicorn app:create_app()" 
