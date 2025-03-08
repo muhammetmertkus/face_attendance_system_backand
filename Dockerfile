@@ -14,6 +14,11 @@ RUN apt-get update && apt-get install -y \
     libopenjp2-7-dev \
     libtiff5-dev \
     libwebp-dev \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxrender1 \
+    libxext6 \
     && rm -rf /var/lib/apt/lists/*
 
 # Uygulama dosyalarını kopyala
@@ -25,6 +30,7 @@ RUN pip install --upgrade pip && \
     pip install --no-cache-dir Pillow==9.5.0 && \
     pip install --no-cache-dir dlib==19.24.0 && \
     pip install --no-cache-dir face-recognition==1.3.0 && \
+    pip install --no-cache-dir opencv-python-headless==4.8.0.74 && \
     pip install --no-cache-dir -r requirements.txt
 
 # Uygulama portunu belirt
