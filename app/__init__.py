@@ -7,6 +7,10 @@ from flask_swagger_ui import get_swaggerui_blueprint
 from flask_cors import CORS
 from dotenv import load_dotenv
 
+# MySQL için pymysql'i SQLAlchemy ile kullanmak için
+import pymysql
+pymysql.install_as_MySQLdb()
+
 # Ortam değişkenlerini yükle
 load_dotenv()
 
