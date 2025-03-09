@@ -408,7 +408,7 @@ def upgrade_db():
     else:
         return jsonify({'error': f'Veritabanı güncellenemedi: {error}'}), 500
 
-@bp.route('/public-upgrade-db', methods=['POST'])
+@bp.route('/public-upgrade-db', methods=['GET', 'POST'])
 def public_upgrade_db():
     """Herkese açık veritabanı yükseltme endpoint'i."""
     success, error = upgrade_database()
