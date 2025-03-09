@@ -1,12 +1,18 @@
 from flask import Blueprint, request, jsonify, current_app, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app import db
-from app.utils.helpers import admin_required
+from app.extensions import db
+from app.utils.decorators import admin_required
+from app.models.user import User
+from app.models.teacher import Teacher
+from app.models.student import Student
+from app.models.course import Course, LessonTime, CourseStudent
+from app.models.attendance import Attendance
 import os
 import shutil
 import sqlite3
 import datetime
 import tempfile
+import json
 from alembic.config import Config
 from alembic import command
 
@@ -39,11 +45,6 @@ def reset_database():
 def seed_database():
     """Veritabanına örnek veriler ekle"""
     try:
-        from app.models.user import User
-        from app.models.teacher import Teacher
-        from app.models.student import Student
-        from app.models.course import Course, LessonTime, CourseStudent
-        
         # Admin kullanıcısı oluştur
         admin = User(
             email="admin@example.com",
@@ -416,4 +417,26 @@ def public_upgrade_db():
     if success:
         return jsonify({'message': 'Veritabanı başarıyla güncellendi.'}), 200
     else:
-        return jsonify({'error': f'Veritabanı güncellenemedi: {error}'}), 500 
+        return jsonify({'error': f'Veritabanı güncellenemedi: {error}'}), 500
+
+@bp.route('/public-upgrade-db', methods=['GET', 'POST', 'OPTIONS'])
+def public_upgrade_db():
+    """Herkese açık veritabanı yükseltme endpoint'i."""
+    # OPTIONS isteği için CORS yanıtı
+    if request.method == 'OPTIONS':
+        response = jsonify({'status': 'success'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+        return response
+        
+    success, error = upgrade_database()
+
+    if success:
+        response = jsonify({'message': 'Veritabanı başarıyla güncellendi.'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response, 200
+    else:
+        response = jsonify({'error': f'Veritabanı güncellenemedi: {error}'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response, 500 

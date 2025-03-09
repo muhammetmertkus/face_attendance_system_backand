@@ -37,6 +37,31 @@ def create_app(test_config=None):
         response.headers.add('Access-Control-Allow-Credentials', 'true')
         return response
     
+    # CORS desteği ekle - tüm domainlere izin ver
+    CORS(app, 
+         resources={
+             r"/*": {
+                 "origins": "*",
+                 "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+                 "allow_headers": ["Content-Type", "Authorization", "Access-Control-Allow-Credentials"]
+             },
+             r"/api/admin/public-upgrade-db": {
+                 "origins": "*",
+                 "methods": ["GET", "POST", "OPTIONS"],
+                 "allow_headers": ["Content-Type", "Authorization", "Access-Control-Allow-Credentials"]
+             }
+         }, 
+         supports_credentials=True)
+    
+    # CORS ön uçuş isteklerini ele al
+    @app.after_request
+    def after_request(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,Access-Control-Allow-Credentials')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response
+    
     # Yapılandırma
     if test_config is None:
         # Varsayılan yapılandırma
