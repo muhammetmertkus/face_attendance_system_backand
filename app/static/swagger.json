@@ -3246,6 +3246,74 @@
           }
         }
       }
+    },
+    "/api/admin/create-tables": {
+      "post": {
+        "tags": [
+          "🔄 Veritabanı"
+        ],
+        "summary": "Veritabanı Tablolarını Oluştur",
+        "description": "SQLAlchemy kullanarak doğrudan veritabanı tablolarını oluşturur. Bu endpoint yetkilendirme gerektirmez.",
+        "responses": {
+          "200": {
+            "description": "Veritabanı tabloları başarıyla oluşturuldu",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Veritabanı tabloları başarıyla oluşturuldu."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Veritabanı tabloları oluşturulamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Veritabanı tabloları oluşturulamadı."
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "🔄 Veritabanı"
+        ],
+        "summary": "Veritabanı Tablolarını Oluştur (GET)",
+        "description": "SQLAlchemy kullanarak doğrudan veritabanı tablolarını oluşturur. Bu endpoint yetkilendirme gerektirmez ve tarayıcıdan doğrudan erişilebilir.",
+        "responses": {
+          "200": {
+            "description": "Veritabanı tabloları başarıyla oluşturuldu",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Veritabanı tabloları başarıyla oluşturuldu."
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Veritabanı tabloları oluşturulamadı",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "example": "Veritabanı tabloları oluşturulamadı."
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {

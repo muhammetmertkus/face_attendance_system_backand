@@ -409,16 +409,6 @@ def upgrade_db():
     else:
         return jsonify({'error': f'Veritabanı güncellenemedi: {error}'}), 500
 
-@bp.route('/public-upgrade-db', methods=['GET', 'POST'])
-def public_upgrade_db():
-    """Herkese açık veritabanı yükseltme endpoint'i."""
-    success, error = upgrade_database()
-
-    if success:
-        return jsonify({'message': 'Veritabanı başarıyla güncellendi.'}), 200
-    else:
-        return jsonify({'error': f'Veritabanı güncellenemedi: {error}'}), 500
-
 @bp.route('/public-upgrade-db', methods=['GET', 'POST', 'OPTIONS'])
 def public_upgrade_db():
     """Herkese açık veritabanı yükseltme endpoint'i."""
@@ -438,5 +428,48 @@ def public_upgrade_db():
         return response, 200
     else:
         response = jsonify({'error': f'Veritabanı güncellenemedi: {error}'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response, 500
+
+@bp.route('/create-tables', methods=['GET', 'POST', 'OPTIONS'])
+def create_tables():
+    """Doğrudan veritabanı tablolarını oluşturan endpoint."""
+    try:
+        # OPTIONS isteği için CORS yanıtı
+        if request.method == 'OPTIONS':
+            response = jsonify({'status': 'success'})
+            response.headers.add('Access-Control-Allow-Origin', '*')
+            response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+            response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+            return response
+            
+        # SQLAlchemy ile tabloları oluştur
+        from app.models.user import User
+        from app.models.teacher import Teacher
+        from app.models.student import Student
+        from app.models.course import Course, LessonTime, CourseStudent
+        from app.models.attendance import Attendance
+        
+        with current_app.app_context():
+            db.create_all()
+            
+            # Admin kullanıcısı oluştur (eğer yoksa)
+            admin = User.query.filter_by(email='admin@example.com').first()
+            if not admin:
+                admin = User(
+                    email='admin@example.com',
+                    password='admin123',
+                    first_name='Admin',
+                    last_name='User',
+                    role='admin'
+                )
+                db.session.add(admin)
+                db.session.commit()
+        
+        response = jsonify({'message': 'Veritabanı tabloları başarıyla oluşturuldu.'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response, 200
+    except Exception as e:
+        response = jsonify({'error': f'Veritabanı tabloları oluşturulamadı: {str(e)}'})
         response.headers.add('Access-Control-Allow-Origin', '*')
         return response, 500 
