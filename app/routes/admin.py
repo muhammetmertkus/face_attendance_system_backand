@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.extensions import db
-from app.utils.decorators import admin_required
+from app import db
+from app.utils.helpers import admin_required
 from app.models.user import User
 from app.models.teacher import Teacher
 from app.models.student import Student
