@@ -25,8 +25,9 @@ def create_app(test_config=None):
     allowed_origins = [
         'http://localhost:3000',  # Yerel geliştirme için
         'http://localhost:5000',  # Yerel geliştirme için
-        'https://your-frontend-domain.com',  # Frontend uygulamanızın domain'i
+        'http://127.0.0.1:5000',  # Yerel geliştirme için (alternatif)
         'https://faceattendancesystemfrontend.vercel.app',  # Vercel'de deploy edilmiş frontend
+        'https://your-frontend-domain.com',  # Frontend uygulamanızın domain'i
         # Diğer izin verilen domainleri buraya ekleyin
     ]
     
@@ -52,17 +53,22 @@ def create_app(test_config=None):
         origin = request.headers.get('Origin')
         # Eğer origin izin verilen listede ise, o origin'i header'a ekle
         if origin and origin in allowed_origins:
-            response.headers.add('Access-Control-Allow-Origin', origin)
+            response.headers.set('Access-Control-Allow-Origin', origin)
+            response.headers.set('Access-Control-Allow-Credentials', 'true')
+            response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Access-Control-Allow-Credentials')
+            response.headers.set('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, OPTIONS')
         # Eğer /api/admin/public-upgrade-db endpoint'i için istek geliyorsa, tüm originlere izin ver
         elif request.path.startswith('/api/admin/public-upgrade-db'):
-            response.headers.add('Access-Control-Allow-Origin', '*')
+            response.headers.set('Access-Control-Allow-Origin', '*')
+            response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Access-Control-Allow-Credentials')
+            response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         # Diğer durumlarda, varsayılan olarak ilk izin verilen origin'i kullan
         elif allowed_origins:
-            response.headers.add('Access-Control-Allow-Origin', allowed_origins[0])
+            response.headers.set('Access-Control-Allow-Origin', allowed_origins[0])
+            response.headers.set('Access-Control-Allow-Credentials', 'true')
+            response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Access-Control-Allow-Credentials')
+            response.headers.set('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, OPTIONS')
             
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,Access-Control-Allow-Credentials')
-        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
         return response
     
     # Yapılandırma
@@ -91,21 +97,30 @@ def create_app(test_config=None):
     # JWT hata işleyicileri
     @jwt.invalid_token_loader
     def invalid_token_callback(error_string):
-        # Test amaçlı: Geçersiz token hatalarını yoksay
-        print(f"Geçersiz token hatası yoksayıldı: {error_string}")
-        return None
+        # Geçersiz token hatası için uygun bir JSON yanıtı döndür
+        return jsonify({
+            'status': 'error',
+            'message': 'Geçersiz token',
+            'error': str(error_string)
+        }), 401
     
     @jwt.unauthorized_loader
     def missing_token_callback(error_string):
-        # Test amaçlı: Eksik token hatalarını yoksay
-        print(f"Eksik token hatası yoksayıldı: {error_string}")
-        return None
+        # Eksik token hatası için uygun bir JSON yanıtı döndür
+        return jsonify({
+            'status': 'error',
+            'message': 'Eksik token',
+            'error': str(error_string)
+        }), 401
     
     @jwt.expired_token_loader
     def expired_token_callback(jwt_header, jwt_payload):
-        # Test amaçlı: Süresi dolmuş token hatası yoksayıldı
-        print(f"Süresi dolmuş token hatası yoksayıldı")
-        return None
+        # Süresi dolmuş token hatası için uygun bir JSON yanıtı döndür
+        return jsonify({
+            'status': 'error',
+            'message': 'Süresi dolmuş token',
+            'error': 'Token süresi dolmuş'
+        }), 401
     
     # Swagger UI yapılandırması
     SWAGGER_URL = '/api/docs'
@@ -148,6 +163,22 @@ def create_app(test_config=None):
     @app.route('/', defaults={'path': ''}, methods=['OPTIONS'])
     @app.route('/<path:path>', methods=['OPTIONS'])
     def options_handler(path):
-        return jsonify({'status': 'ok'})
+        origin = request.headers.get('Origin')
+        response = jsonify({'status': 'ok'})
+        
+        # Eğer origin izin verilen listede ise, o origin'i header'a ekle
+        if origin and origin in allowed_origins:
+            response.headers.set('Access-Control-Allow-Origin', origin)
+        # Eğer /api/admin/public-upgrade-db endpoint'i için istek geliyorsa, tüm originlere izin ver
+        elif path.startswith('api/admin/public-upgrade-db'):
+            response.headers.set('Access-Control-Allow-Origin', '*')
+        # Diğer durumlarda, varsayılan olarak ilk izin verilen origin'i kullan
+        elif allowed_origins:
+            response.headers.set('Access-Control-Allow-Origin', allowed_origins[0])
+            
+        response.headers.set('Access-Control-Allow-Credentials', 'true')
+        response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, Access-Control-Allow-Credentials')
+        response.headers.set('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE, OPTIONS')
+        return response
     
     return app 
