@@ -11,7 +11,16 @@ class Config:
     # 1. Önce DATABASE_URI ve DATABASE_URL ortam değişkenlerini kontrol et
     # 2. Eğer bunlar yoksa, PostgreSQL bağlantı parametrelerini kullan
     # 3. Eğer bu değişkenler de yoksa, varsayılan SQLite veritabanını kullan
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URI') or os.environ.get('DATABASE_URL')
+    db_uri = os.environ.get('DATABASE_URI')
+    db_url = os.environ.get('DATABASE_URL')
+    
+    # Değerlerin başındaki ve sonundaki boşlukları kaldır
+    if db_uri:
+        db_uri = db_uri.strip()
+    if db_url:
+        db_url = db_url.strip()
+    
+    SQLALCHEMY_DATABASE_URI = db_uri or db_url
     
     # Eğer DATABASE_URI ve DATABASE_URL yoksa, PostgreSQL bağlantı parametrelerini kullan
     if not SQLALCHEMY_DATABASE_URI:
@@ -20,6 +29,18 @@ class Config:
         pg_host = os.environ.get('PGHOST')
         pg_port = os.environ.get('PGPORT', '5432')
         pg_database = os.environ.get('PGDATABASE') or os.environ.get('POSTGRES_DB')
+        
+        # Değerlerin başındaki ve sonundaki boşlukları kaldır
+        if pg_user:
+            pg_user = pg_user.strip()
+        if pg_password:
+            pg_password = pg_password.strip()
+        if pg_host:
+            pg_host = pg_host.strip()
+        if pg_port:
+            pg_port = pg_port.strip()
+        if pg_database:
+            pg_database = pg_database.strip()
         
         if pg_user and pg_password and pg_host and pg_database:
             SQLALCHEMY_DATABASE_URI = f"postgresql://{pg_user}:{pg_password}@{pg_host}:{pg_port}/{pg_database}"
@@ -34,6 +55,8 @@ class Config:
     
     # Dışarıdan erişim için public veritabanı URL'si (eğer varsa)
     DATABASE_PUBLIC_URL = os.environ.get('DATABASE_PUBLIC_URL')
+    if DATABASE_PUBLIC_URL:
+        DATABASE_PUBLIC_URL = DATABASE_PUBLIC_URL.strip()
     
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'jwt-secret-key')
