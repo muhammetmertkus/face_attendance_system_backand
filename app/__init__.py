@@ -1,15 +1,11 @@
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask_swagger_ui import get_swaggerui_blueprint
 from flask_cors import CORS
 from dotenv import load_dotenv
-
-# MySQL için pymysql'i SQLAlchemy ile kullanmak için
-import pymysql
-pymysql.install_as_MySQLdb()
 
 # Ortam değişkenlerini yükle
 load_dotenv()
@@ -25,32 +21,25 @@ def create_app(test_config=None):
     # Flask uygulaması oluştur
     app = Flask(__name__, static_folder='static')
     
-    # CORS desteği ekle - tüm domainlere izin ver
-    CORS(app, 
-         resources={r"/*": {"origins": "*"}}, 
-         supports_credentials=True,
-         allow_headers=["Content-Type", "Authorization", "Access-Control-Allow-Credentials"],
-         methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+    # İzin verilen originler listesi - frontend uygulamanızın URL'sini buraya ekleyin
+    allowed_origins = [
+        'http://localhost:3000',  # Yerel geliştirme için
+        'http://localhost:5000',  # Yerel geliştirme için
+        'https://your-frontend-domain.com',  # Frontend uygulamanızın domain'i
+        'https://faceattendancesystemfrontend.vercel.app',  # Vercel'de deploy edilmiş frontend
+        # Diğer izin verilen domainleri buraya ekleyin
+    ]
     
-    # CORS ön uçuş isteklerini ele al
-    @app.after_request
-    def after_request(response):
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
-        return response
-    
-    # CORS desteği ekle - tüm domainlere izin ver
+    # CORS desteği ekle - belirli domainlere izin ver
     CORS(app, 
          resources={
              r"/*": {
-                 "origins": "*",
+                 "origins": allowed_origins,
                  "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
                  "allow_headers": ["Content-Type", "Authorization", "Access-Control-Allow-Credentials"]
              },
              r"/api/admin/public-upgrade-db": {
-                 "origins": "*",
+                 "origins": "*",  # Bu endpoint için tüm originlere izin ver
                  "methods": ["GET", "POST", "OPTIONS"],
                  "allow_headers": ["Content-Type", "Authorization", "Access-Control-Allow-Credentials"]
              }
@@ -60,7 +49,17 @@ def create_app(test_config=None):
     # CORS ön uçuş isteklerini ele al
     @app.after_request
     def after_request(response):
-        response.headers.add('Access-Control-Allow-Origin', '*')
+        origin = request.headers.get('Origin')
+        # Eğer origin izin verilen listede ise, o origin'i header'a ekle
+        if origin and origin in allowed_origins:
+            response.headers.add('Access-Control-Allow-Origin', origin)
+        # Eğer /api/admin/public-upgrade-db endpoint'i için istek geliyorsa, tüm originlere izin ver
+        elif request.path.startswith('/api/admin/public-upgrade-db'):
+            response.headers.add('Access-Control-Allow-Origin', '*')
+        # Diğer durumlarda, varsayılan olarak ilk izin verilen origin'i kullan
+        elif allowed_origins:
+            response.headers.add('Access-Control-Allow-Origin', allowed_origins[0])
+            
         response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,Access-Control-Allow-Credentials')
         response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
         response.headers.add('Access-Control-Allow-Credentials', 'true')
