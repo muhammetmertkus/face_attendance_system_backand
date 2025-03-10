@@ -170,7 +170,7 @@ def create_app(test_config=None):
         if origin and origin in allowed_origins:
             response.headers.set('Access-Control-Allow-Origin', origin)
         # Eğer /api/admin/public-upgrade-db endpoint'i için istek geliyorsa, tüm originlere izin ver
-        elif path.startswith('api/admin/public-upgrade-db'):
+        elif path.startswith('api/admin/public-upgrade-db') or request.path.startswith('/api/admin/public-upgrade-db'):
             response.headers.set('Access-Control-Allow-Origin', '*')
         # Diğer durumlarda, varsayılan olarak ilk izin verilen origin'i kullan
         elif allowed_origins:
